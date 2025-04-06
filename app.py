@@ -31,7 +31,7 @@ if uploaded_file:
     cluster_labels = {0: 'LXX', 1: 'LX', 2: 'L', 3: 'M', 4: 'S', 5: 'SX'}
 
     def cluster_dataframe(df, key_cols, level_name):
-        df['Key'] = df[key_cols].agg(" | ".join, axis=1)
+        df['Key'] = df[key_cols].fillna("Boş").astype(str).agg(" | ".join, axis=1)
         for metric in metrics:
             results = []
             for key, group in df.groupby('Key'):
