@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -60,26 +61,46 @@ if uploaded_file:
             df[column] = df[column].map(cluster_labels)
         return df
 
-    # AltKategori
-    df_alt = pd.read_excel(xls, sheet_name="AltKategori", header=6)
-    df_alt = cluster_dataframe(df_alt, ["AileAdı", "KategoriAdı", "AltKategoriAdı"], "AltKategori")
-
-    # Kategori
-    df_cat = pd.read_excel(xls, sheet_name="Kategori", header=6)
-    df_cat = cluster_dataframe(df_cat, ["AileAdı", "KategoriAdı"], "Kategori")
-
-    # Aile
-    df_aile = pd.read_excel(xls, sheet_name="Aile", header=6)
-    df_aile = cluster_dataframe(df_aile, ["AileAdı"], "Aile")
-
-    # Excel çıktısı
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df_alt.to_excel(writer, sheet_name="AltKategori Cluster", index=False)
-        df_cat.to_excel(writer, sheet_name="Kategori Cluster", index=False)
-        df_aile.to_excel(writer, sheet_name="Aile Cluster", index=False)
-    output.seek(0)
 
+        # AltKategori
+        try:
+            df_alt = pd.read_excel(xls, sheet_name="AltKategori", header=6)
+            expected_cols = ["AileAdı", "KategoriAdı", "AltKategoriAdı"]
+            if all(col in df_alt.columns for col in expected_cols):
+                df_alt = cluster_dataframe(df_alt, expected_cols, "AltKategori")
+                df_alt.to_excel(writer, sheet_name="AltKategori Cluster", index=False)
+            else:
+                st.warning("⚠️ 'AltKategori' sayfasında gerekli kolonlar eksik.")
+        except Exception as e:
+            st.error(f"AltKategori sayfası okunamadı: {e}")
+
+        # Kategori
+        try:
+            df_cat = pd.read_excel(xls, sheet_name="Kategori", header=6)
+            expected_cols = ["AileAdı", "KategoriAdı"]
+            if all(col in df_cat.columns for col in expected_cols):
+                df_cat = cluster_dataframe(df_cat, expected_cols, "Kategori")
+                df_cat.to_excel(writer, sheet_name="Kategori Cluster", index=False)
+            else:
+                st.warning("⚠️ 'Kategori' sayfasında gerekli kolonlar eksik.")
+        except Exception as e:
+            st.error(f"Kategori sayfası okunamadı: {e}")
+
+        # Aile
+        try:
+            df_aile = pd.read_excel(xls, sheet_name="Aile", header=6)
+            expected_cols = ["AileAdı"]
+            if all(col in df_aile.columns for col in expected_cols):
+                df_aile = cluster_dataframe(df_aile, expected_cols, "Aile")
+                df_aile.to_excel(writer, sheet_name="Aile Cluster", index=False)
+            else:
+                st.warning("⚠️ 'Aile' sayfasında gerekli kolonlar eksik.")
+        except Exception as e:
+            st.error(f"Aile sayfası okunamadı: {e}")
+
+    output.seek(0)
     st.success("✅ Analiz tamamlandı! Aşağıdan çıktıyı indirebilirsiniz.")
     st.download_button(
         label="📥 Excel Sonucunu İndir",
